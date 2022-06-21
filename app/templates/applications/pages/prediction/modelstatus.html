@@ -1,0 +1,203 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Congratulations!</strong> Your model have been created successfully.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header card-header-primary">
+                    <h4 class="card-title ">Model Status</h4>
+                    <p class="card-category"></p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Model Name</th>
+                                <th>Last Run time</th>
+                                <th>Created On</th>
+                                <th>Updated On</th>
+                                <th class="text-center">Run Model</th>
+                                <th class=text-center">Update Data Frame</th>
+                                <th class=text-center">Delete</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="text-center">1</td>
+                                <td>{{ fname }}</td>
+                                <td>{{ last_run_time }}</td>
+                                <td>{{ created_on }}</td>
+                                <td>{{ updated_on }}</td>
+                                <td class="td-actions text-center">
+                                    <button type="button" rel="tooltip" class="btn btn-info">
+                                        <li class="material-icons"><a>
+                                            <!--a href="/runthemodel"-->
+                                            <a href="/createmodel">
+                                                <i class="material-icons">play_circle</i>
+                                            </a>
+                                        </li>
+                                    </button>
+                                </td>
+                                <td class="td-actions text-center">
+                                    <button type="button" rel="tooltip" class="btn btn-success">
+                                        <li class="material-icons">
+                                            <a href="/createmodel">
+                                                <i class="material-icons">edit</i>
+                                            </a>
+                                        </li>
+                                    </button>
+                                </td>
+                                <td class="td-actions text-center">
+                                    <button id="delete_model" type="button" rel="tooltip" class="btn btn-danger">
+                                        <li class="material-icons">
+                                            <a data-toggle="modal" data-target="#exampleModal">
+                                                <i class="material-icons">close</i>
+                                            </a>
+                                        </li>
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-header card-header-warning card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons ">waterfall_chart</i>
+                    </div>
+                    <p class="card-category">Prediction Results Accuracy</p>
+                    <h3 class="card-title">{{ accuracy }} %</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-header card-header-success card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">show_chart</i>
+                    </div>
+                    <p class="card-category">Mean Absolute Error</p>
+                    <h3 class="card-title">{{ Mean_Absolute_Error }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-header card-header-danger card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">stacked_line_chart</i>
+                    </div>
+                    <p class="card-category">Mean Squared Error</p>
+                    <h3 class="card-title">{{ Mean_Squared_Error }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-header card-header-info card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">score</i>
+                    </div>
+                    <p class="card-category">Root_Mean Squared Error</p>
+                    <h3 class="card-title">{{ Root_Mean_Squared_Error }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="card card-chart">
+                <div class="card-header card-header-danger">
+                    <div>
+                        <h3>Predication Distribution</h3>
+                    </div>
+                </div>
+                <div class="card-header card-header" align="conter">
+                    <img src="{{ url_for('static', filename= plot_image_path) }}" style="width: 100%; height: 100%"/>
+                </div>
+                <div class="card-footer">
+                    <div class="stats">
+                        <button type="button" class="btn btn-primary pull-right">Download all results
+                            <div class="ripple-container"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="card card-chart">
+                <div class="card-header card-header-warning">
+                    <div>
+                        <h3>Export the model</h3>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">Webpage</h4>
+                    <p class="card-category">Create web page tp predict values and also you can embed this page into
+                        your system.</p>
+                    <a class="nav-link" data-toggle="modal" data-target="#webpageModal" href="#webpageModal">
+                        <button type="button" class="btn btn-success pull-right">Create Webpage</button>
+                    </a>
+                    <div class="ripple-container"></div>
+                </div>
+                <div class="card-footer">
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">APIs</h4>
+                    <p class="card-category">APIs library to integrate your model with other system.</p>
+                    <form name="downloadapisdocument" method="get" action="/downloadapisdocument">
+                        <button type="submit" class="btn btn-danger pull-right">Download APIs Document</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 col-md-12">
+            <div class="card">
+                <div class="card-header card-header-success">
+                    <h4 class="card-title">Sample Data</h4>
+                    <p class="card-category">10 sample rows from your dataset</p>
+                </div>
+                <div class="card-body table-responsive">
+                    {% for sample in sample_data %}
+                        {{ sample|safe }}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+    <script>
+        $(document).ready(function () {
+            // Javascript method's body can be found in assets/js/demos.js
+            md.initDashboardPageCharts();
+
+        });
+    </script>
+
+{% endblock javascripts %}
