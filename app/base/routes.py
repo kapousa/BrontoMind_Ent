@@ -188,7 +188,7 @@ def uploadcsvds():
                                            len(depended_columns) != 0)) else 'Your data file doesn not have one or more required fields to build the timeforecasting model. The file should have:<ul><li>One or more ctaegoires columns</li><li>One or more time series columns</li><li>One or more columns with numerical values.</li></ul><br/>Please check your file and upload it again.')
             return render_template('applications/pages/forecasting/dsfileanalysis.html', headersArray=headersArray,
                                    fname=fname,
-                                   ds_source=session['ds_spurce'], ds_goal=session['ds_goal'],
+                                   ds_source=session['ds_source'], ds_goal=session['ds_goal'],
                                    segment='createmodel', message=Markup(message),
                                    forecasting_columns=forecasting_columns,
                                    depended_columns=depended_columns,
@@ -284,6 +284,7 @@ def creatingthemodel():
             if (ds_goal == current_app.config['CLASSIFICATION_MODULE']):
                 classification_label = request.form.get('classification_label')
                 classification_features = numpy.array(request.form.getlist('classification_features'))
+                session['is_local_data'] = request.form.get("is_local_data")
                 return render_template('applications/pages/classification/creatingclassificationmodel.html',
                                        classification_label=classification_label,
                                        classification_features=classification_features,
@@ -334,14 +335,16 @@ def sendvalues():
 
 
             if (ds_goal == current_app.config['CLASSIFICATION_MODULE']):
-                data_file_path = "%s%s" % (df_location, fname)
+                # data_file_path = "%s%s" % (df_location, fname)
                 classification_label = [request.form.get('classification_label')]
-                classification_features = request.form.getlist('classification_features')
+                # classification_features = request.form.getlist('classification_features')
                 idf = improve_data_file(fname, app.config['UPLOAD_FOLDER'], classification_label)
-                # run model
-                cc = ClassificationController()
-                model_controller = cc.run_the_classification_model(root_path, data_file_path, classification_label, classification_features,
-                                                               ds_source, ds_goal)
+                # # run model
+                # cc = ClassificationController()
+                # model_controller = cc.run_the_classification_model(root_path, data_file_path, classification_label, classification_features,
+                #                                                ds_source, ds_goal)
+                classificationfactory = ClassificationFactory()
+                return classificationfactory.create_classification_text_model(request)
 
                 if model_controller == 0:
                     return render_template('page-501.html',
@@ -349,7 +352,7 @@ def sendvalues():
                                            segment='error')
 
                 # Webpage details
-                page_url = request.host_url + "predictevalues?t=" + current_app.config['CLASSIFICATION_MODULE']
+                page_url = request.host_url + "predictevalues?t=" + ds_goal + '&s=' + ds_source
                 page_embed = "<iframe width='500' height='500' src='" + page_url + "'></iframe>"
 
                 # APIs details and create APIs document
@@ -540,7 +543,8 @@ def predictevalues():
 
         if (ds_goal == current_app.config['CLASSIFICATION_MODULE']):
             classification_directory = ClassificationDirector()
-            return classification_directory.predict_values_from_model(request, ds_goal)
+            #return classification_directory.predict_values_from_model(request, ds_goal)
+            return classification_directory.classify_text_from_model(request, ds_goal, ds_source)
 
     except Exception as e:
         return render_template('applications/pages/nomodeltopredictevalues.html',

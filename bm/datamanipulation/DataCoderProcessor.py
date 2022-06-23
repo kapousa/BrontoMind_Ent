@@ -63,7 +63,7 @@ class DataCoderProcessor:
                 dummies = self.vectorize_column(col_name, data[[col_name]])
                 dummies = pd.DataFrame(dummies)
                 data = data.drop([col_name], axis=1)
-                data.insert(i, col_name, dummies)
+                data.insert(i, col_name, dummies[1:])
 
         db.session.bulk_insert_mappings(ModelEncodedColumns, encoded_columns)
         db.session.commit()
