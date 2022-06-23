@@ -32,20 +32,20 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header card-header-success">
-                    <img src="https://img.icons8.com/material/48/ffffff/csv.png" style="float:right !important;"/>
-                    <h3>CSV file</h3>
+                <div class="card-header card-header-info">
+                    <img src="https://img.icons8.com/material/48/ffffff/mysql-logo.png"
+                         style="float:right !important;"/>
+                    <h3>Physical Files</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <h3>Upload your data from CSV file.</h3>
+                            <h3>Show BrontoMind where are saving your data?</h3>
                         </div>
                     </div>
-                    <form action="/selectcsvds" name="selectcsvds" id="selectcsvds" method="post">
-                        <input type="hidden" id="ds_source" name="ds_source" value="1"/>
-                        <input type="hidden" id="ds_goal" name="ds_goal" value="{{ ds_goal }}"/>
-                        <button type="submit" class="btn btn-success pull-right">Upload the file</button>
+                    <form action="/selectphysicalfiles" name="selectphysicalfiles" id="selectphysicalfiles" method="post">
+                        <input type="hidden" id="ds_source" name="ds_source" value="11"/>
+                        <button type="submit" class="btn btn-primary pull-right">Upload data files</button>
                     </form>
                     <div class="clearfix"></div>
                 </div>
@@ -66,7 +66,6 @@
                     </div>
                     <form action="/selectmysqlds" name="selectmysqlds" id="selectmysqlds" method="post">
                         <input type="hidden" id="ds_source" name="ds_source" value="2"/>
-                        <input type="hidden" id="ds_goal" name="ds_goal" value="{{ ds_goal }}"/>
                         <button type="submit" class="btn btn-warning pull-right">Link to Database</button>
                     </form>
                     <div class="clearfix"></div>
@@ -77,25 +76,27 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header card-header-info">
-                    <img src="https://img.icons8.com/material/48/ffffff/salesforce.png"
-                         style="float:right !important;"/>
-                    <h3>Salesforce <span class="badge badge-danger">Coming Soon</span></h3>
+                <div class="card-header card-header-success">
+                    <img src="https://img.icons8.com/material/48/ffffff/csv.png" style="float:right !important;"/>
+                    <h3>CSV file</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <h3></h3>
+                            <h3>Upload your data from CSV file.</h3>
                         </div>
                     </div>
-                    <form action="/selectsfds" name="selectsfds" id="selectsfds" method="post">
-                        <input type="hidden" id="ds_source" name="ds_source" value="4" />
-                        <button type="submit" class="btn btn-info pull-right" disabled>Connect to data</button>
+                    <form action="/selectcsvds" name="selectcsvds" id="selectcsvds" method="post">
+                        <input type="hidden" id="ds_source" name="ds_source" value="1"/>
+                        <button type="submit" class="btn btn-success pull-right">Upload the file</button>
                     </form>
                     <div class="clearfix"></div>
                 </div>
             </div>
         </div>
+
+    </div>
+    <div class="row">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header card-header-success">
@@ -112,6 +113,27 @@
                     <form action="/selectgsds" name="selectgsds" id="selectgsds" method="post">
                         <input type="hidden" id="ds_source" name="ds_source" value="3"/>
                         <button type="submit" class="btn btn-success pull-right" disabled>Connect to sheet</button>
+                    </form>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header card-header-info">
+                    <img src="https://img.icons8.com/material/48/ffffff/salesforce.png"
+                         style="float:right !important;"/>
+                    <h3>Salesforce <span class="badge badge-danger">Coming Soon</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3></h3>
+                        </div>
+                    </div>
+                    <form action="/selectsfds" name="selectsfds" id="selectsfds" method="post">
+                        <input type="hidden" id="ds_source" name="ds_source" value="4"/>
+                        <button type="submit" class="btn btn-info pull-right" disabled>Connect to data</button>
                     </form>
                     <div class="clearfix"></div>
                 </div>

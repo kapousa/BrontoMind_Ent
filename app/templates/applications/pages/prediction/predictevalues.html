@@ -17,11 +17,15 @@
                 <div class="card-header card-header-success">
 
                     <h2>Predict values</h2>
-                    <lead>Enter the values of below information and the model will predict {{ labels_list }} accordingly. </lead>
+                    <lead>Enter the values of below information and the model will predict {{ labels_list }}
+                        accordingly.
+                    </lead>
 
                 </div>
-                <form action="/predictevalues" method="post" name="predictevalues">
+
+                <form action="/predictevalues?t={{ ds_goal }}" method="post" name="predictevalues">
                     <div class="card-body">
+
                         {% for i in range(0, features_list.size) %}
                             {% if (i == features_list.size) %}
                                 <div class="col-md-4">
@@ -66,36 +70,32 @@
                             {% endif %}
                         {% endfor %}
                         <br/>
-
+                        <button type="submit" class="btn btn-primary pull-right">Predict Values</button>
+                        <div class="clearfix"></div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-primary pull-right">Predict Values</button>
-                                    <div class="clearfix"></div>
-                                </div>
-                            </div>
-                        </div>
+                        <input type="hidden" name="ds_goal" value="{{ ds_goal }}">
                 </form>
+
             </div>
         </div>
-        </div>
-        {% for key in all_gategories_values %}
-            {{ i }}
-            <script>
-                $(function () {
-                    var ff = 0;
-                    const availableTags = new Array(
-                        {%for j in all_gategories_values[key] %}
-                            "{{ j }}",
-                        {%endfor%}
-                    );
-                    $("#tags{{ key }}").autocomplete({
-                        source: availableTags
+        {% if all_gategories_values != 0 %}
+            {% for key in all_gategories_values %}
+                {{ i }}
+                <script>
+                    $(function () {
+                        var ff = 0;
+                        const availableTags = new Array(
+                            {%for j in all_gategories_values[key] %}
+                                "{{ j }}",
+                            {%endfor%}
+                        );
+                        $("#tags{{ key }}").autocomplete({
+                            source: availableTags
+                        });
                     });
-                });
-            </script>
-        {% endfor %}
+                </script>
+            {% endfor %}
+        {% endif %}
         </div>
         {% if predicted == 'Yes' %}
             <div class="row">
@@ -133,9 +133,22 @@
         {% endif %}
 
     {% else %}
-        <div class="alert alert-primary" role="alert">
-            <strong>Sorry!</strong> {{ message }}
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header card-header-success">
+                    <h2>Predict values</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Sorry!</strong> {{ message }}
+                    </div>
+                    <a href="/predictevalues?t={{ ds_goal }}">
+                        <button type="button" class="btn btn-primary pull-right">Try again</button>
+                    </a>
+                </div>
+            </div>
         </div>
+
     {% endif %}
 {% endblock content %}
 
@@ -145,7 +158,7 @@
 <!-- Specific JS goes HERE -->
 {% block javascripts %}
     <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-  <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 {% endblock javascripts %}
 
 <script src="/static/assets/js/argon.js?v=1.2.0"></script>

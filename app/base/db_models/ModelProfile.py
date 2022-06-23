@@ -26,12 +26,18 @@ class ModelProfile(db.Model):
     created_on = Column(String)
     updated_on = Column(String)
     last_run_time = Column(String)
-    ds_source = Column(Integer)
+    ds_source = Column(String)
     ds_goal = Column(String)
     mean_percentage_error = Column(String)
     mean_absolute_percentage_error = Column(String)
     depended_factor = Column(String)
     forecasting_category = Column(String)
+    train_precision = Column(String)
+    train_recall = Column(String)
+    train_f1 = Column(String)
+    test_precision = Column(String)
+    test_recall = Column(String)
+    test_f1 = Column(String)
 
     def __init__(self, **kwargs):
         for property, value in kwargs.items():

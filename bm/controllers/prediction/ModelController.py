@@ -1,27 +1,30 @@
 import random
+import shutil
 
 from datetime import datetime
 
 import nltk
 import numpy
+import plotly
+import seaborn as sns
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import accuracy_score, confusion_matrix
 
-from sklearn.metrics import accuracy_score
-
+from app.base.constants.BM_CONSTANTS import plot_zip_locations, pkls_location, scalars_location, plot_locations, \
+    html_plots_location, html_short_path
 from bm.core.ModelProcessor import ModelProcessor
 from bm.datamanipulation.AdjustDataFrame import encode_prediction_data_frame, \
-    decode_predicted_values, deletemodelfiles, encode_one_hot, encode_one_hot_input_features, convert_data_to_sample
+    decode_predicted_values, convert_data_to_sample
 from bm.datamanipulation.DataCoderProcessor import DataCoderProcessor
 from bm.db_helper.AttributesHelper import get_labels, get_encoded_columns, add_api_details, \
     update_api_details_id
 import os
 import pickle
 from random import randint
-
+import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.multioutput import MultiOutputClassifier
@@ -30,17 +33,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn import naive_bayes
 from app import db
 from app.base.db_models.ModelProfile import ModelProfile
-from app.base.db_models.ModelForecastingResults import ModelForecastingResults
-from app.base.db_models.ModelLabels import ModelLabels
-from app.base.db_models.ModelEncodedColumns import ModelEncodedColumns
-from app.base.db_models.ModelFeatures import ModelFeatures
-from app.base.db_models.ModelAPIDetails import ModelAPIDetails
 from bm.datamanipulation.AdjustDataFrame import remove_null_values
 from bm.db_helper.AttributesHelper import add_features, add_labels, delete_encoded_columns, get_model_id, \
-    encode_testing_features_values, get_features
+    get_features
 from bm.utiles.CVSReader import get_only_file_name
 from bm.utiles.CVSReader import getcvsheader, get_new_headers_list, reorder_csv_file
-
+import matplotlib.pyplot as plt
+import plotly.express as px
 
 
 class ModelController:
@@ -55,26 +54,14 @@ def saveDSFile(self):
     return 'file uploaded successfully'
 
 
-pkls_location = 'pkls/'
-scalars_location = 'scalars/'
-plot_locations = 'app/static/images/plots/'
-image_short_path = 'static/images/plots/'
-df_location = 'app/data/'
-image_location = 'app/'
-root_path = '../app/'
-output_docs_location = 'app/base/output_docs/'
-docs_templates_folder = 'docs_templates/'
-output_docs = 'app/base/output_docs/'
-
-
-def run_prediction_model(root_path, csv_file_location, predicted_columns, ds_source, ds_goal, demo):
+def run_prediction_model(root_path, csv_file_location,featuresdvalues, predicted_columns, ds_source, ds_goal, demo):
     if demo == 'DEMO':
-        return run_demo_model(root_path, csv_file_location, predicted_columns, ds_source, ds_goal)
+        return run_demo_model(root_path, csv_file_location,featuresdvalues, predicted_columns, ds_source, ds_goal)
     else:
-        return run_prod_model(root_path, csv_file_location, predicted_columns, ds_source, ds_goal)
+        return run_prod_model(root_path, csv_file_location,featuresdvalues, predicted_columns, ds_source, ds_goal)
 
 
-def run_prod_model(root_path, csv_file_location, predicted_columns, ds_source, ds_goal):
+def run_prod_model(root_path, csv_file_location,featuresdvalues, predicted_columns, ds_source, ds_goal):
     # ------------------Preparing data frame-------------------------#
     cvs_header = getcvsheader(csv_file_location)
     new_headers_list = get_new_headers_list(cvs_header, predicted_columns)
@@ -189,7 +176,7 @@ def predict_values_from_model(model_file_name, testing_values):
         s_c = pickle.load(open(scalar_file_name, 'rb'))
         test_x = s_c.transform(encode_df_testing_values)
 
-        predicted_values = model.predict(test_x)
+        predicted_values = model.predict(test_x) #---
         # predicted_values = predicted_values.flatten()
         decoded_predicted_values = dcp.decode_output_values(lables_list, predicted_values)
         print(decoded_predicted_values)
@@ -227,12 +214,14 @@ def predict_values_from_model_with_encode(model_file_name, testing_values): # No
     return decoded_predicted_values
 
 
-def run_demo_model(root_path, csv_file_location, predicted_columns, ds_source, ds_goal):
+def run_demo_model(root_path, csv_file_location,featuresdvalues, predicted_columns, ds_source, ds_goal):
     # ------------------Preparing data frame-------------------------#
     cvs_header = getcvsheader(csv_file_location)
     new_headers_list = get_new_headers_list(cvs_header, predicted_columns)
     reordered_data = reorder_csv_file(csv_file_location, new_headers_list)
     data = reordered_data  # pd.read_csv(csv_file_location)
+    new_headers_list = np.append(featuresdvalues, predicted_columns.flatten())
+    data = data[new_headers_list]
     model_id = randint(0, 10)
 
     # Determine features and lables
@@ -242,6 +231,12 @@ def run_demo_model(root_path, csv_file_location, predicted_columns, ds_source, d
 
     # 1-Clean the data frame
     data = remove_null_values(data)
+    if(len(data) == 0): # No data found after cleaning
+        return 0
+
+    dd = data.max(numeric_only=True)
+    bb = data.describe()
+    print(data.describe())
 
     # 2- Encode the data frame
     deleteencodedcolumns = delete_encoded_columns()
@@ -258,6 +253,7 @@ def run_demo_model(root_path, csv_file_location, predicted_columns, ds_source, d
     dcp = DataCoderProcessor()
     real_x = dcp.encode_features(model_id, real_x)
     real_y = dcp.encode_labels(model_id, real_y)
+    encoded_data = pd.concat((real_x, real_y), axis=1, join='inner')
     # real_x = encode_one_hot(model_id, features_df, 'F')  # 2 param (test vales)
     # real_y = encode_one_hot(model_id, labels_df, 'L')  # (predict values)
 
@@ -272,8 +268,9 @@ def run_demo_model(root_path, csv_file_location, predicted_columns, ds_source, d
     pickle.dump(s_c, open(scalar_file_name, 'wb'))
 
     # Select proper model
-    cls = MultiOutputClassifier(KNeighborsClassifier(n_neighbors=5, metric='minkowski', p=2),
-                                n_jobs=-1)  # KNeighborsRegressor)
+    mp = ModelProcessor()
+    cls = mp.regressionmodelselector(encoded_data, labels_df)
+    #cls = # LinearRegression() #MultiOutputClassifier(KNeighborsClassifier(n_neighbors=5, metric='minkowski', p=2), n_jobs=-1)  # KNeighborsRegressor)
     cls.fit(training_x, training_y)
 
     model_file_name = pkls_location + file_name + '_model.pkl'
@@ -294,26 +291,36 @@ def run_demo_model(root_path, csv_file_location, predicted_columns, ds_source, d
     dir = plot_locations
     for f in os.listdir(dir):
         os.remove(os.path.join(dir, f))
+    for f in os.listdir(plot_zip_locations):
+        os.remove(os.path.join(plot_zip_locations, f))
 
     # Show prediction
-    plot_image_path = os.path.join(plot_locations, get_only_file_name(csv_file_location) + '_plot.png')
-    image_path = os.path.join(plot_locations, get_only_file_name(csv_file_location) + '_plot.png')
-    image_db_path = image_short_path + get_only_file_name(csv_file_location) + '_plot.png'
-    # if not is_classification:
-    plt.scatter(testing_y, y_pred, color="red")
-    x = [np.min(testing_y), np.max(testing_y)]
-    y = [np.min(y_pred), np.max(y_pred)]
-    plt.plot(x, y, color="#52b920", label='Regression Line')
-    plt.title("Testing model vs Prediction values")
-    plt.xlabel("Tested values")
-    plt.ylabel("Predicted values")
-    plot_image = plot_image_path  # os.path.join(root_path, 'static/images/plots/', get_only_file_name(csv_file_location) + '_plot.png')
-    plt.savefig(plot_image, dpi=300, bbox_inches='tight')
+    x_range = np.linspace(real_x.min(), real_x.max())
+    bb = x_range.reshape(-1, 1)
+    y_range = cls.predict(x_range)
+    fig = px.scatter(training_x, opacity=0.65)
+    fig.add_traces(go.Scatter(x=x_range, y=y_range, name='Regression Fit'))
+    html_file_location = html_plots_location + file_name + ".html"
+    html_path = html_short_path + file_name + ".html"
+    plotly.offline.plot(fig, filename=html_file_location, config={'displayModeBar': False}, auto_open=False)
+    image_db_path = html_path
+    for i in range(len(model_features)):
+        for j in range(len(model_labels)):
+            img_prefix = '_' + model_features[i] + '_' +  model_labels[j]
+            plot_image_path = os.path.join(plot_locations, get_only_file_name(csv_file_location) + img_prefix +'_plot.png')
+            image_path = os.path.join(plot_locations, get_only_file_name(csv_file_location) + img_prefix + '_plot.png')
+            #if(i ==0 and j ==0):
+            #    image_db_path = image_short_path + get_only_file_name(csv_file_location) + img_prefix +  '_plot.png'
+            sns.pairplot(data, x_vars=model_features[i],
+                         y_vars=model_labels[j], size=4, aspect=1, kind='scatter')
+            plot_image =  plot_image_path #os.path.join(root_path, 'static/images/plots/', get_only_file_name(csv_file_location) + '_plot.png')
+            plt.savefig(plot_image, dpi=300, bbox_inches='tight')
+    shutil.make_archive(plot_zip_locations + file_name, 'zip', plot_locations)
     # plt.show()
 
     # ------------------Predict values from the model-------------------------#
     now = datetime.now()
-    all_return_values = {'accuracy': acc, 'confusion_matrix': c_m, 'plot_image_path': image_path,
+    all_return_values = {'accuracy': acc, 'confusion_matrix': c_m, 'plot_image_path': image_db_path, #image_path,
                          'file_name': file_name,
                          'Mean_Absolute_Error': Mean_Absolute_Error,
                          'Mean_Squared_Error': Mean_Squared_Error,
@@ -361,51 +368,99 @@ def run_demo_model(root_path, csv_file_location, predicted_columns, ds_source, d
     return all_return_values
 
 
-def get_model_status():
-    try:
-        model_profile_row = ModelProfile.query.all()
-        model_profile = {}
+def run_demo_model1(root_path, csv_file_location, predicted_columns, ds_source, ds_goal):
+    # ------------------Preparing data frame-------------------------#
+    cvs_header = getcvsheader(csv_file_location)
+    new_headers_list = get_new_headers_list(cvs_header, predicted_columns)
+    #reordered_data = reorder_csv_file(csv_file_location, new_headers_list)
+    #data = reordered_data  # pd.read_csv(csv_file_location)
+    data = pd.read_csv(csv_file_location)
+    model_id = randint(0, 10)
 
-        for profile in model_profile_row:
-            model_profile = {'model_id': profile.model_id,
-                             'model_name': profile.model_name,
-                             'prediction_results_accuracy': str(profile.prediction_results_accuracy),
-                             'mean_absolute_error': str(profile.mean_absolute_error),
-                             'mean_squared_error': str(profile.mean_squared_error),
-                             'root_mean_squared_error': str(profile.root_mean_squared_error),
-                             'plot_image_path': profile.plot_image_path,
-                             'created_on': profile.created_on,
-                             'updated_on': profile.updated_on,
-                             'last_run_time': profile.last_run_time,
-                             'ds_sorce': profile.ds_source,
-                             'ds_goal': profile.ds_goal,
-                             'mean_percentage_error': profile.mean_percentage_error,
-                             'mean_absolute_percentage_error': profile.mean_absolute_percentage_error,
-                             'depended_factor': profile.depended_factor,
-                             'forecasting_category': profile.forecasting_category}
-            print(model_profile)
-        return model_profile
-    except  Exception as e:
-        print('Ohh -get_model_status...Something went wrong.')
-        print(e)
-        return 0
+    # Determine features and lables
+    features_last_index = len(new_headers_list) - (len(predicted_columns))
+    model_features = new_headers_list[0:features_last_index]
+    model_labels = predicted_columns
+
+    # 1-Clean the data frame
+    data = remove_null_values(data)
+    dd = data.max(numeric_only=True)
+    print(data.describe())
+
+    # 2- Select ML algorithm
+    #cls = modelselector(data, model_features, mo)
+
+    data_column_count = len(data.columns)
+    testing_values_len = data_column_count - len(predicted_columns)
+
+    # take slice from the dataset, all rows, and cloumns from 0:8
+    features_df = data[model_features]
+    labels_df = data[model_labels]
+
+    real_x = data.loc[:, model_features]
+    real_y = data.loc[:, model_labels]
+    dcp = DataCoderProcessor()
+    #real_x = dcp.encode_features1(model_id, real_x)
+    #real_y = dcp.encode_labels(model_id, real_y)
+    # real_x = encode_one_hot(model_id, features_df, 'F')  # 2 param (test vales)
+    # real_y = encode_one_hot(model_id, labels_df, 'L')  # (predict values)
+
+    training_x, testing_x, training_y, testing_y = train_test_split(real_x, real_y, test_size=0.25, random_state=0)
+
+    # Add standard scalar
+    s_c = StandardScaler(with_mean=False)  # test
+    training_x = s_c.fit_transform(training_x)
+    test_x = s_c.transform(testing_x)
+    file_name = get_only_file_name(csv_file_location)
+    scalar_file_name = file_name + '_scalear.sav'
+    pickle.dump(s_c, open(scalar_file_name, 'wb'))
+
+    # Select proper model
+    cls = MultiOutputClassifier(KNeighborsClassifier(n_neighbors=5, metric='minkowski', p=2),
+                                n_jobs=-1)  # KNeighborsRegressor)
+    cls.fit(training_x, training_y)
+
+    model_file_name = file_name + '_model.pkl'
+    pickle.dump(cls, open(model_file_name, 'wb'))
+    y_pred = cls.predict(test_x)
+
+    # Evaluating the Algorithm
+    cf_matrix = confusion_matrix(testing_y, y_pred)
+    print(cf_matrix)
+    ax = sns.heatmap(cf_matrix , annot=True, annot_kws={"size": 16})
+    plt.show()
+
+    Mean_Absolute_Error = round(
+        metrics.mean_absolute_error(numpy.array(testing_y, dtype=object), numpy.array(y_pred, dtype=object)),
+        2)  # if not is_classification else 'N/A'
+    Mean_Squared_Error = round(metrics.mean_squared_error(testing_y, y_pred), 2)  # if not is_classification else 'N/A'
+    Root_Mean_Squared_Error = round(np.sqrt(metrics.mean_squared_error(testing_y, y_pred)),
+                                    2)  # if not is_classification else 'N/A'
+    c_m = ''
+    acc = np.array(round(cls.score(training_x, training_y) * 100, 2))
 
 
-def delet_model():
-    try:
-        ModelEncodedColumns.query.filter().delete()
-        ModelFeatures.query.filter().delete()
-        ModelLabels.query.filter().delete()
-        ModelAPIDetails.query.filter().delete()
-        ModelProfile.query.filter().delete()
-        ModelForecastingResults.query.filter().delete()
-        db.session.commit()
 
-        # Delete old model files
-        delete_model_files = deletemodelfiles(scalars_location, pkls_location, output_docs_location, df_location)
+    # Show prediction
 
-        return 1
-    except Exception as e:
-        print('Ohh -delet_models...Something went wrong.')
-        print(e)
-        return 0
+    plt.scatter(testing_y, y_pred)
+    #plt.scatter(range(len(y_pred)), y_pred, color='red')
+    plt.title("dfdfdf")
+    # plt.show()//
+
+    # ------------------Predict values from the model-------------------------#
+    now = datetime.now()
+    all_return_values = {'accuracy': acc, 'confusion_matrix': c_m, # 'plot_image_path': image_path,
+                         'file_name': file_name,
+                         'Mean_Absolute_Error': Mean_Absolute_Error,
+                         'Mean_Squared_Error': Mean_Squared_Error,
+                         'Root_Mean_Squared_Error': Root_Mean_Squared_Error,
+                         'created_on': now.strftime("%d/%m/%Y %H:%M:%S"),
+                         'updated_on': now.strftime("%d/%m/%Y %H:%M:%S"),
+                         'last_run_time': now.strftime("%d/%m/%Y %H:%M:%S")}
+
+
+
+    return all_return_values
+
+# b = run_demo_model1(root_path, 'diabetes.csv', ['Age'], '1', '2')

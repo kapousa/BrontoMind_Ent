@@ -6,6 +6,9 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 import pickle
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 from app import db
 from sklearn import preprocessing
 
@@ -46,6 +49,27 @@ class DataCoderProcessor:
     def encode_labels(self, model_id, data: DataFrame):
         column_type = 'L'
         return self.encode_features(model_id, data, 'L')
+
+    def vectrise_feature_text(self, model_id, data: DataFrame):
+        columns_name = data.columns
+        encoded_columns = []
+        data_types = data.dtypes
+        for i in range(len(data_types)):
+            if data_types[i] != np.int64 and data_types[i] != np.float:
+                data_item = {'model_id': model_id, 'column_name': columns_name[i],
+                             'column_type': 'F'}
+                encoded_columns.append(data_item)
+                col_name = columns_name[i]
+                dummies = self.vectorize_column(col_name, data[[col_name]])
+                dummies = pd.DataFrame(dummies)
+                data = data.drop([col_name], axis=1)
+                data.insert(i, col_name, dummies)
+
+        db.session.bulk_insert_mappings(ModelEncodedColumns, encoded_columns)
+        db.session.commit()
+        db.session.close()
+
+        return data
 
     def encode_input_values(self, features_list, input_values):
         encoded_columns = []
@@ -89,6 +113,12 @@ class DataCoderProcessor:
             decoded_results.append(decoded_row)
         return np.array(decoded_results)
 
+    def decode_category_name(self, category_column, input_values):
+        pkl_file_location = self.pkls_location + category_column + '_pkle.pkl'
+        encoder_pkl = pickle.load(open(pkl_file_location, 'rb'))
+        original_value = encoder_pkl.inverse_transform(input_values)
+        return original_value
+
     def encode_column(self, column_name, column_data):
         column_data_arr = column_data.to_numpy()
         column_data_arr = column_data_arr.flatten()
@@ -108,11 +138,36 @@ class DataCoderProcessor:
 
         return encoded_values
 
+    def vectorize_column(self, column_name, column_data):
+        column_data_arr = column_data.to_numpy()
+        column_data_arr = column_data_arr.flatten()
+        categories = numpy.unique(column_data_arr)
+        vectorizer = TfidfVectorizer()
+        column_data_arr = column_data_arr.flatten()
+        column_data_list = list(column_data_arr)
+        vectors = vectorizer.fit_transform(column_data_list)
+        pkl_file_location = self.pkls_location + column_name + '_pkle.pkl'
+        pickle.dump(vectorizer, open(pkl_file_location, 'wb'))
+
+        # save categories
+        category_file_location = self.category_location + column_name + '_csv.csv'
+        with open(category_file_location, 'w') as f:
+            # create the csv writer
+            writer = csv.writer(f)
+            # write a row to the csv file
+            writer.writerow(categories)
+
+        return vectors.indptr
+
     def get_all_gategories_values(self=None):
         encoded_columns = get_encoded_columns('F')
-        all_gategories_values ={}
-        for i in range (len(encoded_columns)):
+
+        if len(encoded_columns) == 0:
+            return '0'
+
+        all_gategories_values = {}
+        for i in range(len(encoded_columns)):
             category_file_location = DataCoderProcessor.category_location + encoded_columns[i] + '_csv.csv'
             category_values = getcvsheader(category_file_location)
-            all_gategories_values[encoded_columns[i]] =  category_values
+            all_gategories_values[encoded_columns[i]] = category_values
         return all_gategories_values

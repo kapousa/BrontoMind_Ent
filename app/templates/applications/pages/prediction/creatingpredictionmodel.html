@@ -28,6 +28,11 @@
                            value="{{ predictionvalues[i] }}" checked style="display: none"/>
 
          {% endfor %}
+        {% for i in range(0, featuresdvalues.size) %}
+             <input type="checkbox" class="form-control" name="featuresdvalues"
+                           value="{{ featuresdvalues[i] }}" checked style="display: none"/>
+
+         {% endfor %}
     </form>
 
 {% endblock content %}

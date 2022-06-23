@@ -24,6 +24,63 @@
         </div>
     {% else %}
         <div class="row">
+
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header card-header-primary">
+                        <h4 class="card-title">Configure the model</h4>
+                        <p class="card-category"></p>
+                    </div>
+                    <div class="card-body">
+                        <form action="/creatingthemodel" name="creatingthemodel" method="post">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="bmd-label-floating">Select columns that you want your machine to
+                                            predict its values and which columns should affect the results (features).</label><br/>
+                                        <label class="alert alert-danger">Note: All empty columns removed from the
+                                            dataset.</label><br/>
+                                        <center>
+                                            <!--select name="predictionvalues" id="predictionvalues" multiple-->
+                                            <table class="table">
+                                                <thead>
+                                                <tr>
+                                                    <td>Predicted data</td>
+                                                    <td>Dat column</td>
+                                                    <td>Data features</td>
+                                                </tr>
+                                                </thead>
+                                            <tbody>
+                                                {% for i in range(0, headersArray.size) %}
+                                                    <tr>
+                                                        <td>
+                                                            <input type="checkbox"
+                                                                   name="predcitedvalues"
+                                                                   value="{{ headersArray[i] }}"/>
+                                                        </td>
+                                                        <td>
+                                                            {{ headersArray[i] }}
+                                                        </td>
+                                                    <td>
+                                                            <input type="checkbox"
+                                                                   name="featuresdvalues"
+                                                                   value="{{ headersArray[i] }}"/>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                            </table>
+                                            <!--/select-->
+                                        </center>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Run Model</button>
+                            <div class="clearfix"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
             <div class="col-md-7">
                 <div class="card">
                     <div class="card-header card-header-info">
@@ -44,54 +101,11 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-5">
-                <div class="card">
-                    <div class="card-header card-header-primary">
-                        <h4 class="card-title">Predicted values</h4>
-                        <p class="card-category"></p>
-                    </div>
-                    <div class="card-body">
-                        <form action="/creatingthemodel" name="creatingthemodel" method="post">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="bmd-label-floating">Select columns that you want your machine to
-                                            predict its values</label><br/>
-                                        <label class="alert alert-danger">Note: All empty columns removed from the
-                                            dataset.</label><br/>
-                                        <center>
-                                            <!--select name="predictionvalues" id="predictionvalues" multiple-->
-                                            <table class="table">
-                                                {% for i in range(0, headersArray.size) %}
-                                                    <tr>
-                                                        <td>
-                                                            <input type="checkbox"
-                                                                   name="predcitedvalues"
-                                                                   value="{{ headersArray[i] }}"/>
-                                                        </td>
-                                                        <td>
-                                                            <h3>{{ headersArray[i] }}</h3>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </table>
-                                            <!--/select-->
-                                        </center>
-                                    </div>
-                                </div>
-                            </div>
-                            <input type="hidden" name="fname" value="{{ fname }}">
-                            <input type="hidden" name="ds_source" value="{{ ds_source }}">
-                            <input type="hidden" name="ds_goal" value="{{ ds_goal }}">
-                            <button type="submit" class="btn btn-primary pull-right">Run Model</button>
-                            <div class="clearfix"></div>
-                        </form>
-                    </div>
-                </div>
-            </div>
         </div>
     {% endif %}
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+
+{% endblock javascripts %}

@@ -62,7 +62,8 @@ class TimeForecastingController:
         for col in ds.columns:
             if ds[col].dtype == 'object':
                 try:
-                    ds[col] = pd.to_datetime(ds[col])
+                    #ds[col] = pd.to_datetime(ds[col], dayfirst=True, format="%d/%m/%Y %H:%M")
+                    ds[col] = pd.to_datetime(ds[col], yearfirst=True, format="%Y/%m/%d")
                     datetime_columns_arr.append(col)
                 except ValueError:
                     forecasting_columns_arr.append(col)

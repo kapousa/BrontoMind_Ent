@@ -21,4 +21,4 @@ docx==0.2.4
 category_encoders
 nltk
 flask_mysqldb
-wtforms
+wtformss

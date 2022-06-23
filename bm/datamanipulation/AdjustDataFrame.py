@@ -12,6 +12,7 @@ import numpy as np
 from app import db
 from joblib import dump, load
 
+from app.base.constants.BM_CONSTANTS import df_location
 from app.base.db_models import ModelEncodedColumns
 from app.base.db_models.ModelFeatures import ModelFeatures
 from bm.db_helper.AttributesHelper import add_encoded_column_values
@@ -365,7 +366,7 @@ def get_category_name(index, names, lengths, df_headers):
     raise ValueError('The index is higher than the number of categorical values')
 
 
-def import_mysql_table_csv(host_name, username, password, database_name, table_name, file_path):
+def import_mysql_table_csv(host_name, username, password, database_name, table_name):
     cc = DBConnector()
 
     crsour = cc.create_mysql_connection(host_name, username, password, database_name)
@@ -377,11 +378,33 @@ def import_mysql_table_csv(host_name, username, password, database_name, table_n
     column_names = numpy.array(mycursor.fetchall()).flatten()
     mycursor.execute(table_data)
     df = pd.DataFrame(mycursor.fetchall(), columns=column_names)
-    file_location = file_path + "/{}.csv".format(table_name)
+    file_location = df_location + "/{}.csv".format(table_name)
     df.to_csv(file_location, index=False)
     mycursor.close()
     return file_location
 
+def import_mysql_query_csv(host_name, username, password, database_name, query_statement):
+    db_connector = DBConnector()
+    conn = db_connector.create_mysql_connection(host_name, username, password, database_name)
+
+    sql_query = pd.read_sql_query(query_statement, con=conn)  # here, the 'conn' is the variable that contains your database connection information from step 2
+    df = pd.DataFrame(sql_query)
+    conn.close()
+
+    file_location = df_location + "/{}.csv".format(database_name)
+    df.to_csv(file_location, index=False)
+
+    # Remove empty columns
+    data = pd.read_csv(file_location)
+    data = data.dropna(axis=1, how='all')
+    data.drop(data.columns[data.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
+    data.to_csv(file_location, index=False)
+    data = pd.read_csv(file_location)
+
+    # Check if the dataset if engough
+    count_row = data.shape[0]
+
+    return file_location, count_row
 
 # Delete the orginal data file and create sample data file with the same name
 def convert_data_to_sample(ds_file_location, no_of_sample=5):

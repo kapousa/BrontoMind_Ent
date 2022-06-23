@@ -60,7 +60,7 @@
                                     <td>{{ created_on }}</td>
                                     <td>{{ updated_on }}</td>
                                     <td class="budget">
-                                        <a href="/createmodel">
+                                        <a href="/createmodel?t={{ ds_goal }}">
                                             <button class="btn btn-icon btn-2 btn-primary" type="button">
                                             <span class="btn-inner--icon">
                                                     <i class="ni ni-button-play"></i>
@@ -94,26 +94,25 @@
                 </div>
             </div>
         </div>
-
         <div class="row">
 
-             <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="col-lg-3 col-md-6 col-sm-6">
                 <div class="card card-stats">
                     <div class="card-header card-header-primary card-header-icon">
                         <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
-                                    <i class="fas fa-chart-bar"></i>
-                                </div>
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
                         <p class="card-category">Prediction Results Accuracy</p>
                         <h3 class="card-title">{{ accuracy }} %</h3>
                     </div>
                 </div>
             </div>
-             <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="col-lg-3 col-md-6 col-sm-6">
                 <div class="card card-stats">
                     <div class="card-header card-header-success card-header-icon">
                         <div class="icon icon-shape bg-success text-white rounded-circle shadow">
-                                    <i class="fas fa-chart-bar"></i>
-                                </div>
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
                         <p class="card-category">Mean Absolute Error</p>
                         <h3 class="card-title">{{ Mean_Absolute_Error }}</h3>
                     </div>
@@ -123,8 +122,8 @@
                 <div class="card card-stats">
                     <div class="card-header card-header-danger card-header-icon">
                         <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
-                                    <i class="fas fa-chart-bar"></i>
-                                </div>
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
                         <p class="card-category">Mean Squared Error</p>
                         <h3 class="card-title">{{ Mean_Squared_Error }}</h3>
                     </div>
@@ -134,8 +133,8 @@
                 <div class="card card-stats">
                     <div class="card-header card-header-info card-header-icon">
                         <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
-                                    <i class="fas fa-chart-bar"></i>
-                                </div>
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
                         <p class="card-category">Root_Mean Squared Error</p>
                         <h3 class="card-title">{{ Root_Mean_Squared_Error }}</h3>
                     </div>
@@ -143,27 +142,38 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="card card-chart">
-                    <div class="card-header card-header-danger">
-                        <div>
-                            <h4 class="card-title ">Predication Distribution</h4>
-                        </div>
+                    <div class="card-header card-header-warning">
+                        <h4 class="card-title">Data Correlation</h4>
                     </div>
-                    <div class="card-header card-header" align="conter">
-                        <img src="{{ plot_image_path }}"
-                             style="width: 100%; height: 100%"/>
-                    </div>
-                    <div class="card-footer">
-                        <div class="stats">
-                            <button type="button" class="btn btn-primary pull-right">Download all results
-                                <div class="ripple-container"></div>
-                            </button>
-                        </div>
+                    <div class="card-body">
+                        {% include plot_image_path %}
+
+                        <a class="nav-link" href="/downloadplots">
+                            <button type="button" class="btn btn-primary pull-right">Download All Correlations</button>
+                        </a>
+                        <div class="ripple-container"></div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+
+        </div>
+        <div class="row">
+            <div class="col-lg-8 col-md-8">
+                <div class="card">
+                    <div class="card-header card-header-success">
+                        <h4 class="card-title">Sample Data</h4>
+                        <p class="card-category">10 sample rows from your dataset</p>
+                    </div>
+                    <div class="card-body table-responsive">
+                        {% for sample in sample_data %}
+                            {{ sample|safe }}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
                 <div class="card card-chart">
                     <div class="card-header card-header-warning">
                         <div>
@@ -179,8 +189,6 @@
                         </a>
                         <div class="ripple-container"></div>
                     </div>
-                    <div class="card-footer">
-                    </div>
                     <div class="card-body">
                         <h4 class="card-title">APIs</h4>
                         <p class="card-category">APIs library to integrate your model with other system.</p>
@@ -191,23 +199,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-lg-12 col-md-12">
-                <div class="card">
-                    <div class="card-header card-header-success">
-                        <h4 class="card-title">Sample Data</h4>
-                        <p class="card-category">10 sample rows from your dataset</p>
-                    </div>
-                    <div class="card-body table-responsive">
-                        {% for sample in sample_data %}
-                            {{ sample|safe }}
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
     {% endif %}
-
 {% endblock content %}
 
 
