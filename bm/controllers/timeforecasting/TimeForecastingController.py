@@ -53,9 +53,10 @@ class TimeForecastingController:
     def __init__(self):
         self.test_value = '_'
 
-    def analyize_dataset(ds: DataFrame):
+    def analyize_dataset(self, file_location):
 
         # 1- is there any date column
+        ds = pd.read_csv(file_location)
         forecasting_columns_arr = []
         depended_columns_arr = []
         datetime_columns_arr = []

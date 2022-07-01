@@ -21,6 +21,7 @@ from app import login_manager
 from app.base import blueprint
 from app.base.app_routes.directors.BaseDirector import BaseDirector
 from app.base.app_routes.directors.ClassificationDirector import ClassificationDirector
+from app.base.app_routes.directors.ForecastingDirector import ForecastingDirector
 from app.base.app_routes.directors.PredictionDirector import PredictionDirector
 from app.base.constants.BM_CONSTANTS import plot_zip_download_location, progress_icon_path, \
     loading_icon_path, df_location
@@ -170,7 +171,7 @@ def selectds():
 def uploadcsvds():
     if request.method == 'POST':
         fname, filePath, headersArray, data, message = BaseDirector.get_data_details(request)
-
+        cc = session['ds_goal']
         if (session['ds_goal'] == current_app.config['PREDICTION_MODULE']):  # Prediction
             prediction_director = PredictionDirector()
             return prediction_director.fetch_data(fname, headersArray, message)
@@ -181,18 +182,9 @@ def uploadcsvds():
                                    segment='createmodel', message=message)
 
         if (session['ds_goal'] == current_app.config['FORECASTING_MODULE']):  # Forecasting
-            forecasting_columns, depended_columns, datetime_columns = TimeForecastingController.analyize_dataset(
-                data)
-            message = (message if ((len(forecasting_columns) != 0) and (
-                    len(datetime_columns) != 0) and (
-                                           len(depended_columns) != 0)) else 'Your data file doesn not have one or more required fields to build the timeforecasting model. The file should have:<ul><li>One or more ctaegoires columns</li><li>One or more time series columns</li><li>One or more columns with numerical values.</li></ul><br/>Please check your file and upload it again.')
-            return render_template('applications/pages/forecasting/dsfileanalysis.html', headersArray=headersArray,
-                                   fname=fname,
-                                   ds_source=session['ds_source'], ds_goal=session['ds_goal'],
-                                   segment='createmodel', message=Markup(message),
-                                   forecasting_columns=forecasting_columns,
-                                   depended_columns=depended_columns,
-                                   datetime_columns=datetime_columns)
+            forecasting_director = ForecastingDirector()
+            return forecasting_director.specify_forecating_properties(filePath, headersArray, message)
+
 
         if (session['ds_goal'] == current_app.config['ROBOTIC_MODULE']):  # Robotics
             return render_template('applications/pages/robotics/selectfields.html', headersArray=headersArray,
@@ -221,28 +213,25 @@ def dffromdb():
         if request.method == 'POST':
 
             database_name, file_location, headersArray, count_row, message = BaseDirector.prepare_query_results(request)
+            cc = session['ds_goal']
 
             if (session['ds_goal'] == current_app.config['PREDICTION_MODULE']):
                 prediction_director = PredictionDirector()
                 return prediction_director.fetch_data(session['fname'], headersArray, message)
 
-            elif (session['ds_goal'] == current_app.config['FORECASTING_MODULE']):
-                a =0
-                # forecasting_columns, depended_columns, datetime_columns = TimeForecastingController.analyize_dataset(
-                #     data)
-                # message = (message if ((len(forecasting_columns) != 0) and (
-                #         len(datetime_columns) != 0) and (
-                #                                len(depended_columns) != 0)) else 'Your data file doesn not have one or more required fields to build the timeforecasting model. The file should have:<ul><li>One or more ctaegoires columns</li><li>One or more time series columns</li><li>One or more columns with numerical values.</li></ul><br/>Please check your file and upload it again.')
-                # return render_template('applications/pages/forecasting/dsfileanalysis.html',
-                #                        headersArray=headersArray,
-                #                        segment='createmodel', message=Markup(message),
-                #                        forecasting_columns=forecasting_columns,
-                #                        depended_columns=depended_columns,
-                #                        datetime_columns=datetime_columns)
-            elif (session['ds_goal'] == current_app.config['ROBOTIC_MODULE']):
+            if (session['ds_goal'] == current_app.config['FORECASTING_MODULE']):
+                forecasting_director = ForecastingDirector()
+                return forecasting_director.specify_forecating_properties(file_location, headersArray, message)
+
+
+            if (session['ds_goal'] == current_app.config['CLASSIFICATION_MODULE']):
+                return render_template('applications/pages/classification/selectfields.html', headersArray=headersArray,
+                                       segment='createmodel', message=message)
+
+            if (session['ds_goal'] == current_app.config['ROBOTIC_MODULE']):
                 return render_template('applications/dashboard.html')
-            else:  # ds_goal = '' means user can't decide
-                return render_template('applications/dashboard.html')
+
+            return render_template('applications/dashboard.html')
 
     except Exception as e:
         print(e)
@@ -584,6 +573,11 @@ def showdashboard():
     if len(profile) > 0:
 
         if (profile['ds_goal'] == current_app.config['CLASSIFICATION_MODULE'] and str(profile['ds_source']) == '11'):
+            classification_director = ClassificationDirector()
+            return classification_director.show_text_model_dashboard()
+
+        if profile['ds_goal'] == current_app.config['CLASSIFICATION_MODULE']:
+            # Webpage details
             classification_director = ClassificationDirector()
             return classification_director.show_text_model_dashboard()
 

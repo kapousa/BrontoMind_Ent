@@ -208,8 +208,8 @@ def uploadcsvds():
                                    segment='createmodel', message=message)
 
         if (ds_goal == current_app.config['FORECASTING_MODULE']):  # Forecasting
-            forecasting_columns, depended_columns, datetime_columns = TimeForecastingController.analyize_dataset(
-                data)
+            file_location = "%s%s%s" % (filePath)
+            forecasting_columns, depended_columns, datetime_columns = TimeForecastingController.analyize_dataset(file_location)
             message = (message if ((len(forecasting_columns) != 0) and (
                     len(datetime_columns) != 0) and (
                                            len(depended_columns) != 0)) else 'Your data file doesn not have one or more required fields to build the timeforecasting model. The file should have:<ul><li>One or more ctaegoires columns</li><li>One or more time series columns</li><li>One or more columns with numerical values.</li></ul><br/>Please check your file and upload it again.')
@@ -277,8 +277,7 @@ def dffromdb():
                                            ds_source=ds_source, ds_goal=ds_goal,
                                            segment='createmodel', message='No')
                 elif (ds_goal == current_app.config['FORECASTING_MODULE']):
-                    forecasting_columns, depended_columns, datetime_columns = TimeForecastingController.analyize_dataset(
-                        data)
+                    forecasting_columns, depended_columns, datetime_columns = TimeForecastingController.analyize_dataset(csv_file_location)
                     message = (message if ((len(forecasting_columns) != 0) and (
                             len(datetime_columns) != 0) and (
                                                    len(depended_columns) != 0)) else 'Your data file doesn not have one or more required fields to build the timeforecasting model. The file should have:<ul><li>One or more ctaegoires columns</li><li>One or more time series columns</li><li>One or more columns with numerical values.</li></ul><br/>Please check your file and upload it again.')

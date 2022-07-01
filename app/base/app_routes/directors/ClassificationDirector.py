@@ -156,7 +156,7 @@ class ClassificationDirector:
 
     def show_text_model_dashboard(self):
         profile = BaseController.get_model_status()
-        page_url = request.host_url + "predictevalues?t=10&s=11"
+        page_url = request.host_url + "predictevalues?t=" + str(profile['ds_goal']) + "&s=" + str(profile['ds_source'])
         page_embed = "<iframe width='500' height='500' src='" + page_url + "'></iframe>"
 
         return render_template('applications/pages/classification/textdashboard.html',

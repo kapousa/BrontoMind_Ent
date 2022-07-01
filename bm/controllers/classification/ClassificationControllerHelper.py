@@ -187,7 +187,7 @@ class ClassificationControllerHelper:
                         for key, value in row.items():
                             data_row.append(value)
                         if(data_row[0] != '' and data_row[1] != ''):
-                            outfile.write('%s\t%s\t%s\n' % (data_row[0], 'csv source', data_row[1]))
+                            outfile.write('%s\t%s\t%s\n' % (data_row[1], 'csv source', data_row[0]))
             outfile.close()
 
             return 1
