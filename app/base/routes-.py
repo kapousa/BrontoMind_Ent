@@ -241,7 +241,7 @@ def uploadcsvds():
                                segment='createmodel', message=message)
 
 
-@blueprint.route('/dffrommysqldb', methods=['GET', 'POST'])
+@blueprint.route('/dffromdb', methods=['GET', 'POST'])
 @login_required
 def dffromdb():
     try:

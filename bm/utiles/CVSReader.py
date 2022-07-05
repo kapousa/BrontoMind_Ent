@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import numpy
 
+from app.base.constants.BM_CONSTANTS import df_location
 from bm.utiles.ProjConstants import ProjConstants
 
 
@@ -58,7 +59,7 @@ def improve_data_file(fname, path, predicted_values) -> object:
     csv_reader = getcvsheader(file_path)
     predictionvalues = numpy.array((predicted_values))
     new_csv_header = get_new_headers_list(csv_reader, predictionvalues)
-    #reorder_header = reorder_csv_file(file_path, temp_file_path, new_csv_header)
+    reorder_header = reorder_csv_file(file_path, new_csv_header)
     return 1
 
 def get_only_file_name(full_path):
@@ -76,5 +77,24 @@ def get_file_path(full_path):
     full_path = full_path
     file_path = full_path.rsplit('/', 1)[0] if full_path.find('/')!= -1 else full_path
     return file_path + '/'
+
+def adjust_csv_file(fname, classification_features, classification_label):
+    file_path = "%s%s" % (df_location, fname)
+    df = pd.read_csv(file_path)
+    file_headers = numpy.array(df.columns)
+    classification_features = numpy.array(classification_features)
+    used_columns = np.append(classification_features, [classification_label])
+
+    for file_header in file_headers:
+        if (file_header not in used_columns):
+            df.drop(file_header, axis=1, inplace=True)
+            print(df.head())
+
+    new_file_name = "%s%s%s" % (file_path, 'temp_', fname)
+    df.to_csv(new_file_name, index=False)
+    os.remove(file_path)
+    os.rename(new_file_name, file_path)
+
+    return 'Success'
 
 

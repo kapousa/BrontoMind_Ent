@@ -7,6 +7,8 @@ from collections import defaultdict
 from os import listdir
 from os.path import isfile, join
 from random import shuffle
+
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -122,7 +124,7 @@ class ClassificationControllerHelper:
                     if file_name.endswith(ext):
                         with open(sub_folder_path + '/' + file_name, 'rb') as file:
                             file_text = file.readline().decode(errors='replace').replace('/n', '')
-                            data_list.append([i, file_name, file_text.strip()])
+                            data_list.append([i, file_text.strip()])
                     else:
                         continue
             return data_list
@@ -131,7 +133,7 @@ class ClassificationControllerHelper:
             print(e)
             return 0
 
-    def print_frequency_dist(self, docs):
+    def print_frequency_dist_(self, docs):
         try:
             tokens = defaultdict(list)
             most_common = []
@@ -154,9 +156,35 @@ class ClassificationControllerHelper:
             print(e)
             return 0
 
+    def print_frequency_dist(self, docs):
+        try:
+            tokens = defaultdict(list)
+            most_common = []
+            categories =[]
+            for doc in docs:
+                doc_label = doc[0:-1]
+                doc_text = doc[-1]
+                doc_tokens = word_tokenize(doc_text)
+                tokens[doc_label].extend(doc_tokens)
+
+            for category_label, category_tokens in tokens.items():
+                print(category_label)
+                fd = FreqDist(category_tokens)
+                most_common_3 = fd.most_common(3)
+                categories.append(category_label)
+                most_common.append(str(most_common_3))
+
+            return categories, most_common
+        except Exception as e:
+            print(e)
+            return 0
+
     def create_data_set(self, files_path, labels):
         try:
             output_file = '%s%s' % (files_path, 'data.txt')
+            if os.path.exists(output_file):
+                os.remove(output_file)
+
             with open(output_file, 'w', encoding='utf8') as outfile:
                 for label in labels:
                     dir = '%s%s' % (files_path, label)
@@ -164,7 +192,7 @@ class ClassificationControllerHelper:
                         fullfilename = '%s%s%s' % (dir, '/', filename)
                         with open(fullfilename, 'rb') as file:
                             text = file.read().decode(errors='replace').replace('\n', '')
-                            outfile.write('%s\t%s\t%s\n' % (label, filename, text))
+                            outfile.write('%s\t%s\n' % (label, text))
             outfile.close()
             return 1
         except  Exception as e:
@@ -174,6 +202,8 @@ class ClassificationControllerHelper:
     def create_csv_data_set(self, csv_file_path):
         try:
             output_file = '%s%s' % (df_location, 'data.txt')
+            if os.path.exists(output_file):
+                os.remove(output_file)
             # Open file
             with open(output_file, 'w', encoding='utf8') as outfile:
                 # Create reader object by passing the file
@@ -187,7 +217,12 @@ class ClassificationControllerHelper:
                         for key, value in row.items():
                             data_row.append(value)
                         if(data_row[0] != '' and data_row[1] != ''):
-                            outfile.write('%s\t%s\t%s\n' % (data_row[1], 'csv source', data_row[0]))
+                            cats = data_row[0:len(data_row) - 1]
+                            bb = len(data_row)- 1
+                            for i in range(len(data_row)- 1):
+                                outfile.write('%s\t' % (cats[i]))
+                            text = data_row[-1].replace('\n', '')
+                            outfile.write('%s\n' % (text))
             outfile.close()
 
             return 1
@@ -228,11 +263,15 @@ class ClassificationControllerHelper:
 
             with open(full_file_path, 'r', encoding='utf8') as datafile:
                 for row in datafile:
-                    parts = row.split('\t')
-                    if (len(parts) == 3):
-                        doc = (parts[0], parts[2].strip())
-
-                    docs.append(doc)
+                    parts = np.array(row.split('\t'))
+                    # if (len(parts) >= 2):
+                    #     doc = (parts[0], parts[1].strip())
+                    #     docs.append(doc)
+                    if (len(parts) >= 2):
+                        txt = parts[-1]
+                        cats = parts[0:len(parts) - 1]
+                        doc = (*cats, txt.strip())
+                        docs.append(doc)
                 return docs
         except  Exception as e:
             print(e)

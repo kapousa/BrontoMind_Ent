@@ -260,7 +260,7 @@ class ClassificationController:
             full_file_path = '%s%s%s' % (classification_root_path, data_files_folder, 'data.txt')
             docs = classificationcontrollerHelper.setup_docs(full_file_path)
             categories, most_common = classificationcontrollerHelper.print_frequency_dist(docs)
-            X_train, X_test, y_train, y_test = classificationcontrollerHelper.get_splits(docs)
+            #X_train, X_test, y_train, y_test = classificationcontrollerHelper.get_splits(docs)
             t_model = classificationcontrollerHelper.train_classifier(docs)
 
             # Save model metadata

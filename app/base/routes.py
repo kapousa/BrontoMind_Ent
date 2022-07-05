@@ -42,7 +42,7 @@ from bm.datamanipulation.AdjustDataFrame import create_figure, import_mysql_tabl
     import_mysql_query_csv
 from bm.datamanipulation.DataCoderProcessor import DataCoderProcessor
 from bm.db_helper.AttributesHelper import get_features, get_labels, get_model_name
-from bm.utiles.CVSReader import getcvsheader
+from bm.utiles.CVSReader import getcvsheader, adjust_csv_file
 from bm.utiles.CVSReader import improve_data_file
 
 app = Flask(__name__)
@@ -206,7 +206,7 @@ def uploadcsvds():
                                segment='createmodel', message=message)
 
 
-@blueprint.route('/dffrommysqldb', methods=['GET', 'POST'])
+@blueprint.route('/dffromdb', methods=['GET', 'POST'])
 @login_required
 def dffromdb():
     try:
@@ -238,9 +238,38 @@ def dffromdb():
     return render_template('page-501.html', error=e.with_traceback(), segment='error')
 
 
+@blueprint.route('/dffrompf', methods=['GET', 'POST'])
+@login_required
+def dffrompf():
+    try:
+        if request.method == 'POST':
+            ds_source = session['ds_source']
+            ds_goal = session['ds_goal']
+            ftb_server = request.form.get('ftb_server')
+            ftb_username = request.form.get('ftb_username')
+            ftb_password = request.form.get('ftb_password')
+            is_local_data = request.form.get("is_local_data")
+            session['is_local_data'] = request.form.get("is_local_data")
+
+            return render_template('applications/pages/classification/creatingclassificationmodel.html',
+                                   location=ftb_server,
+                                   name=ftb_username,
+                                   session_token=ftb_password,
+                                   progress_icon_path=progress_icon_path, fname='',
+                                   is_local_data=is_local_data,
+                                   loading_icon_path=loading_icon_path,
+                                   ds_source=ds_source, ds_goal=ds_goal,
+                                   segment='createmodel')
+
+    except Exception as e:
+        tb = sys.exc_info()[2]
+        print(e)
+        return render_template('page-501.html', error=e.with_traceback(tb))
+
+
 @blueprint.route('/creatingthemodel', methods=['GET', 'POST'])
 @login_required
-def creatingthemodel():
+def creatingthemodel(): # The function of showing the gif page
     try:
         if request.method == 'POST':
             ds_source = session['ds_source']
@@ -252,6 +281,7 @@ def creatingthemodel():
                 ftb_username = request.form.get('ftb_username')
                 ftb_password = request.form.get('ftb_password')
                 is_local_data = request.form.get("is_local_data")
+                session['is_local_data'] = request.form.get("is_local_data")
                 return render_template('applications/pages/classification/creatingclassificationmodel.html',
                                        location=ftb_server,
                                        name=ftb_username,
@@ -273,6 +303,7 @@ def creatingthemodel():
             if (ds_goal == current_app.config['CLASSIFICATION_MODULE']):
                 classification_label = request.form.get('classification_label')
                 classification_features = numpy.array(request.form.getlist('classification_features'))
+                acf = adjust_csv_file(session['fname'], classification_features, classification_label)
                 session['is_local_data'] = request.form.get("is_local_data")
                 return render_template('applications/pages/classification/creatingclassificationmodel.html',
                                        classification_label=classification_label,
@@ -305,7 +336,7 @@ def creatingthemodel():
 
 @blueprint.route('/sendvalues', methods=['GET', 'POST'])
 @login_required
-def sendvalues():
+def sendvalues():   # The main function of creating the model
     try:
         if request.method == 'POST':
 

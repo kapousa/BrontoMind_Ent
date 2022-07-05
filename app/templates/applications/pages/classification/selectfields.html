@@ -45,13 +45,18 @@
                                             <thead>
                                                 <tr>
                                                     <td>Categories</td>
-                                                    <td>Dat column</td>
-                                                    <td>Data features</td>
+                                                    <td>Classifed data</td>
+                                                    <td>Data column</td>
                                                 </tr>
                                                 </thead>
                                             <tbody>
                                                 {% for i in range(0, headersArray.size) %}
                                                     <tr>
+                                                        <td>
+                                                            <input type="checkbox"
+                                                                   name="classification_features"
+                                                                   value="{{ headersArray[i] }}"/>
+                                                        </td>
                                                         <td>
                                                             <input type="radio"
                                                                    name="classification_label"
@@ -59,11 +64,6 @@
                                                         </td>
                                                         <td>
                                                             {{ headersArray[i] }}
-                                                        </td>
-                                                        <td>
-                                                            <input type="radio"
-                                                                   name="classification_features"
-                                                                   value="{{ headersArray[i] }}"/>
                                                         </td>
                                                     </tr>
                                                 {% endfor %}
