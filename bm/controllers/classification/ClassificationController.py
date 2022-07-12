@@ -290,8 +290,8 @@ class ClassificationController:
             db.session.commit()
 
             # Add features, labels, and APIs details
-            # add_features_list = add_features(model_id, model_features)
-            # add_labels_list = add_labels(model_id, model_labels)
+            add_features_list = add_features(model_id, model_features)
+            add_labels_list = add_labels(model_id, model_labels)
             api_details_id = random.randint(0, 22)
             api_details_list = add_api_details(model_id, api_details_id, 'v1')
             api_details_list = update_api_details_id(api_details_id)

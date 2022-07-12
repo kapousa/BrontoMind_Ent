@@ -358,6 +358,9 @@ def run_demo_model(root_path, csv_file_location,featuresdvalues, predicted_colum
     api_details_id = random.randint(0, 22)
     api_details_list = add_api_details(model_id, api_details_id, 'v1')
     api_details_list = update_api_details_id(api_details_id)
+    # generate_apis_request_sample = APIHelper.generate_apis_request_sample(api_details_id, 1)
+    # generate_apis_response_sample = APIHelper.generate_apis_response_sample(api_details_id, 1)
+
     # db.session.commit()
     # db.session.expunge_all()
     # db.close_all_sessions

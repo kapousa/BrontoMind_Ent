@@ -353,7 +353,6 @@ def sendvalues():   # The main function of creating the model
                 predictionfactory = PredictionFactory()
                 return predictionfactory.create_prediction_csv_model(request)
 
-
             if (ds_goal == current_app.config['CLASSIFICATION_MODULE']):
                 # data_file_path = "%s%s" % (df_location, fname)
                 classification_label = [request.form.get('classification_label')]

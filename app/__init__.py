@@ -2,6 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
+import logging
 
 from flask import Flask
 from flask_login import LoginManager
@@ -36,6 +37,7 @@ def configure_database(app):
 def create_app(config):
     app = Flask(__name__)
     app.config.from_object(config)
+    logging.basicConfig(filename='bm_log.log', level=logging.ERROR)
     register_extensions(app)
     register_blueprints(app)
     configure_database(app)

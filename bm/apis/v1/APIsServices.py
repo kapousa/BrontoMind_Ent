@@ -42,10 +42,8 @@ def predictvalues(content):
 
     return json_data
 
-
 def getplotiamge(content):
     return 0
-
 
 def getmodelfeatures():
     features_list = get_features()
@@ -60,7 +58,6 @@ def getmodelfeatures():
 
     return json_data
 
-
 def getmodellabels():
     labels_list = get_labels()
     labelss_json = {}
@@ -73,7 +70,6 @@ def getmodellabels():
     json_data = json.dumps(labelss_json, cls=NpEncoder)
 
     return json_data
-
 
 def getmodelprofile(contents):
     return 0

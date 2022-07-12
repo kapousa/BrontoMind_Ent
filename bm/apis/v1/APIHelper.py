@@ -1,9 +1,12 @@
+import logging
 import os
 
 from mailmerge import MailMerge
 
+from app import db
+from app.base.db_models.ModelProfile import ModelProfile
 from bm.apis.v1.APIsServices import predictvalues, getmodelfeatures, getmodellabels, nomodelfound
-from bm.db_helper.AttributesHelper import get_model_name
+from bm.db_helper.AttributesHelper import get_model_name, get_features, get_labels
 
 from app.base.db_models.ModelAPIMethods import ModelAPIMethods
 from app.base.db_models.ModelAPIDetails import ModelAPIDetails
@@ -36,6 +39,9 @@ class APIHelper:
         return api_details
 
     def generateapisdocs(self, model_name, base_usrl, templates_folder, output_pdf_folder):
+
+        generate_apis_request_sample = self.generate_api_method_reqres_sample(1)
+
         apis_doc_cover_template = templates_folder + "Slonos_Labs_BrontoMind_APIs_document_cover_template.docx"
         output_cover_file = str(output_pdf_folder + model_name + '_BrontoMind_APIs_cover_document.docx')
 
@@ -86,8 +92,14 @@ class APIHelper:
 
         return 1
 
-
     def create_api_document(self, filename_master, filename_second, final_filename):
+        """
+        Create the API document
+        :param filename_master:
+        :param filename_second:
+        :param final_filename:
+        :return:
+        """
         # filename_master is name of the file you want to merge the docx file into
         master = Document_compose(filename_master)
 
@@ -105,3 +117,49 @@ class APIHelper:
 
 
         return 1
+
+    def generate_api_method_reqres_sample(self, api_method_id=1):
+        """
+        Generate the request/response's samples of the generated API
+        :param api_method_id
+        :return 1: Success, 0: Fail:
+        """
+        try:
+            # Generate the sample request
+            modelfeatures = get_features()
+            sample_request = "{\n"
+
+            for i in range(len(modelfeatures)):
+                sample_request+= "%s%s%s:" % ("'",modelfeatures[i],"'")
+                if i < len(modelfeatures) - 1:
+                    sample_request+= "'',\n"
+                else:
+                    sample_request += "\n"
+            sample_request+= "}"
+
+            # Update the method's sample request
+            model_api_methods = ModelAPIMethods.query.filter_by(api_method_id = '1').first()
+            model_api_methods.sample_request = sample_request
+            db.session.commit()
+            #db.session.close()
+
+            # Generate the sample response
+            modellabels = get_labels()
+            sample_response = "{\n"
+
+            for i in range(len(modellabels)):
+                sample_response += "%s%s%s:" % ("'", modellabels[i], "'")
+                if i < len(modellabels) - 1:
+                    sample_response += "'',\n"
+                else:
+                    sample_response += "\n"
+            sample_response += "}"
+
+            # Update the method's sample request
+            model_api_methods = ModelAPIMethods.query.filter_by(api_method_id='1').first()
+            model_api_methods.sample_response = sample_response
+            db.session.commit()
+
+            return 1
+        except Exception as e:
+            logging.error("generate_apis_request_sample\n" + e)

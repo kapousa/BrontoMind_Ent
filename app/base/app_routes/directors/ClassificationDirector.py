@@ -3,7 +3,10 @@ import os
 import numpy
 from flask import render_template, request, current_app, session
 
-from app.base.constants.BM_CONSTANTS import progress_icon_path, loading_icon_path
+from app.base.constants.BM_CONSTANTS import progress_icon_path, loading_icon_path, docs_templates_folder, output_docs
+from app.base.db_models.ModelAPIDetails import ModelAPIDetails
+from app.base.db_models.ModelProfile import ModelProfile
+from bm.apis.v1.APIHelper import APIHelper
 from bm.controllers.BaseController import BaseController
 from bm.datamanipulation.DataCoderProcessor import DataCoderProcessor
 from bm.db_helper.AttributesHelper import get_labels, get_features, get_model_name
@@ -110,6 +113,15 @@ class ClassificationDirector:
             page_embed = "<iframe width='500' height='500' src='" + page_url + "'></iframe>"
             classificationcontroller = ClassificationController()
             return_values =  classificationcontroller.run_classification_model(location_details, ds_goal, ds_source, is_local_data)
+
+            # APIs details and create APIs document
+            model_api_details = ModelAPIDetails.query.first()
+            apihelper = APIHelper()
+            model_name = ModelProfile.query.with_entities(ModelProfile.model_name).first()[0]
+            generate_apis_docs = apihelper.generateapisdocs(model_name,
+                                                            str(request.host_url + 'api/' + model_api_details.api_version),
+                                                            docs_templates_folder,
+                                                            output_docs)
 
             return render_template('applications/pages/classification/textmodelstatus.html',
                                    fname=return_values['model_name'],

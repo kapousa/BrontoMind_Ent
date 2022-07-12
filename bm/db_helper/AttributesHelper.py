@@ -12,6 +12,8 @@ import numpy
 import random
 
 
+
+
 def add_features(model_id, features_list):
     features_data = []
     # Add model profile to the database
@@ -177,5 +179,7 @@ def encode_testing_features_values(model_id, testing_values: dict):
 def update_api_details_id(api_details_id):
     num_rows_updated = ModelAPIMethods.query.update(dict(api_details_id=api_details_id))
     db.session.commit()
+
+
     #db.close_all_sessions
     return 1
